@@ -1,0 +1,15 @@
+services:
+  bot:
+    build: .
+    container_name: whatsapp-monitor
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./session:/app/session
+      - ./data:/app/data
+    environment:
+      - NODE_ENV=production
+    # Mantenemos la terminal abierta para ver el código QR en los logs
+    stdin_open: true
+    tty: true
