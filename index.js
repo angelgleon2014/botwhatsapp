@@ -256,18 +256,20 @@ client.on('message_create', async (msg) => {
                     const totalClp = cantidad * precioPorUnidad;
 
                     try {
-                        // En chat privado, el contacto siempre es la otra persona (el cliente)
+                        // En chat privado, el número del cliente siempre está en el ID del chat.
+                        // Usar chat.id.user garantiza que no registremos el número del bot
+                        // cuando este es quien envía el mensaje de confirmación ("ok").
+                        numero = chat.id.user;
                         const contacto = await chat.getContact();
-                        nombre = contacto.pushname || contacto.name || contacto.number;
-                        numero = contacto.number;
+                        nombre = contacto.pushname || contacto.name || chat.name || "Desconocido";
                     } catch (e) {
-                        console.warn('[WARN] No se pudo obtener contacto para venta:', e.message);
-                        nombre = chat.name || 'Desconocido';
-                        numero = chat.id.user || 'unknown';
+                        console.warn("[WARN] No se pudo obtener contacto para venta:", e.message);
+                        nombre = chat.name || "Desconocido";
+                        numero = chat.id.user || "unknown";
                     }
                     await db.registerSale(nombre, numero, cantidad, totalClp, ubicacion);
 
-                    console.log(`[VENTA OK] Guardada para ${nombre} | Cant: ${cantidad} | Total: $${totalClp} | Ubicación: ${ubicacion}`);
+                    console.log(`[VENTA OK] Guardada para ${nombre} | ID: ${numero} | Cant: ${cantidad} | Total: $${totalClp} | Ubicación: ${ubicacion}`);
                 } else {
                     console.log(`👤 IA dice: NO (Venta no cerrada aún)`);
                 }
@@ -534,15 +536,45 @@ client.on('message_create', async (msg) => {
             }
         }
 
+        // 7. ELIMINAR ÚLTIMA VENTA (!euv)
+        if (mensajeLimpio === '!euv' && !chat.isGroup) {
+            const rowCount = await db.deleteLastSale();
+            if (rowCount > 0) {
+                await msg.reply('🗑️ *Venta eliminada:* Se ha eliminado el último registro de venta de la base de datos.');
+                console.log('[DELETE] Última venta eliminada por comando !euv');
+            } else {
+                await msg.reply('⚠️ No hay ventas registradas para eliminar.');
+            }
+        }
+
+        // 8. ELIMINAR ÚLTIMA VENTA POR NÚMERO (!euvn)
+        if (mensajeLimpio.startsWith('!euvn') && !chat.isGroup) {
+            // Extraer todos los dígitos después del comando para manejar espacios o caracteres especiales
+            const numeroTarget = mensajeLimpio.replace('!euvn', '').replace(/\D/g, '');
+
+            if (!numeroTarget) {
+                return await msg.reply('❌ Formato incorrecto. Usa: `!euvn [numero]` (ej: !euvn 56912345678)');
+            }
+
+            const rowCount = await db.deleteLastSaleByNumber(numeroTarget);
+            if (rowCount > 0) {
+                await msg.reply(`🗑️ *Venta eliminada:* Se ha eliminado la última venta registrada para el ID ${numeroTarget}.`);
+                console.log(`[DELETE] Venta eliminada para ${numeroTarget} por comando !euvn`);
+            } else {
+                await msg.reply(`⚠️ No se encontraron ventas para el ID ${numeroTarget}. Verifica el número o ID en los logs.`);
+            }
+        }
+
         // 7. COMANDO DE AYUDA (!ayuda)
         if ((mensajeLimpio === '!ayuda' || mensajeLimpio === '!help' || mensajeLimpio === '!comandos') && !chat.isGroup) {
             const ayudaMensaje = `📝 *COMANDOS DEL BOT* 📝\n\n` +
-                `*!ventas*: Resumen de ingresos acumulados (hoy, ayer, semana, mes).\n` +
-                `*!excel*: Descarga el listado de ventas mensual en Excel.\n` +
-                `*!reporte*: Envía alertas de seguimiento de pedidos pendientes.\n` +
-                `*!bootstrap*: Escaneo retroactivo de todos tus chats (usar solo 1 vez).\n` +
-                `*!scan*: Analiza el historial reciente buscando ventas no registradas.\n` +
-                `*!id*: Muestra el identificador único de este chat.\n\n` +
+                `*!ventas*: Resumen de ingresos acumulados.\n` +
+                `*!excel*: Descarga el listado mensual en Excel.\n` +
+                `*!reporte*: Seguimiento de pedidos pendientes.\n` +
+                `*!euv*: Elimina la última venta registrada.\n` +
+                `*!euvn [num]*: Elimina la última venta de un número.\n` +
+                `*!scan*: Busca ventas en el historial reciente.\n` +
+                `*!id*: Ver ID de este chat.\n\n` +
                 `_Nota: Estos comandos solo funcionan en chats privados._`;
 
             await msg.reply(ayudaMensaje);

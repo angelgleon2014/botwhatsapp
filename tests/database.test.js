@@ -59,4 +59,27 @@ describe('Database Module', () => {
         expect(top[0].name).toBe('Top A');
         expect(top[1].name).toBe('Top B');
     });
+
+    test('deleteLastSale should remove the most recent sale', async () => {
+        await db.registerSale('First', '1', 1, 2000);
+        await db.registerSale('Last', '2', 1, 2000);
+
+        const affected = await db.deleteLastSale();
+        expect(affected).toBe(1);
+
+        const summary = await db.getFinancialSummary();
+        expect(summary.today.count).toBe(1);
+    });
+
+    test('deleteLastSaleByNumber should remove the last sale for a specific number', async () => {
+        await db.registerSale('User A', '555', 1, 2000);
+        await db.registerSale('User B', '777', 1, 2000);
+        await db.registerSale('User A', '555', 2, 4000);
+
+        const affected = await db.deleteLastSaleByNumber('555');
+        expect(affected).toBe(1);
+
+        const summary = await db.getFinancialSummary();
+        expect(summary.today.qty).toBe(2); // Should have 1 (User B) + 1 (First User A) = 2
+    });
 });

@@ -47,6 +47,21 @@ Este proyecto no es solo un bot de respuestas; es un agente autónomo que transc
    docker compose logs -f bot
    ```
 
+## ⌨️ Comandos Disponibles
+
+El bot responde a los siguientes comandos en chats privados:
+
+| Comando | Descripción |
+|---------|-------------|
+| `!ayuda` | Muestra el menú de ayuda con todos los comandos. |
+| `!ventas` | Resumen financiero (Hoy, Ayer, Semana, Mes). |
+| `!excel` | Exporta la base de datos mensual a un archivo `.xlsx`. |
+| `!reporte` | Envía alertas de seguimiento al grupo configurado. |
+| `!euv` | **Eliminar Última Venta**: Borra el registro más reciente. |
+| `!euvn [num]`| **Eliminar Última Venta por Número**: Borra la última venta de ese cliente. |
+| `!scan` | Analiza el historial reciente de un chat buscando ventas. |
+| `!id` | Muestra el ID único del chat actual (para configuración). |
+
 ## ✅ Calidad y Testing (QA)
 
 Para garantizar la fiabilidad del sistema sin comprometer la cuenta de WhatsApp real, se ha implementado una suite de pruebas unitarias robusta:

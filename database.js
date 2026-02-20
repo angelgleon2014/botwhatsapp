@@ -201,6 +201,30 @@ function clearAllSales() {
 }
 
 /**
+ * Delete the last sale recorded in the database
+ */
+function deleteLastSale() {
+    return new Promise((resolve, reject) => {
+        db.run('DELETE FROM sales WHERE id = (SELECT MAX(id) FROM sales)', function (err) {
+            if (err) reject(err);
+            else resolve(this.changes);
+        });
+    });
+}
+
+/**
+ * Delete the last sale for a specific phone number
+ */
+function deleteLastSaleByNumber(number) {
+    return new Promise((resolve, reject) => {
+        db.run('DELETE FROM sales WHERE id = (SELECT MAX(id) FROM sales WHERE number = ?)', [number], function (err) {
+            if (err) reject(err);
+            else resolve(this.changes);
+        });
+    });
+}
+
+/**
  * Close database connection
  */
 function close() {
@@ -221,6 +245,8 @@ module.exports = {
     getTopClients,
     getChileDate,
     saleExists,
+    deleteLastSale,
+    deleteLastSaleByNumber,
     initDb,
     clearAllSales,
     close
