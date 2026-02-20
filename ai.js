@@ -57,7 +57,7 @@ Respuesta JSON:`;
                 response_format: { type: "json_object" }
             });
             const res = JSON.parse(completion.choices[0].message.content.trim());
-            console.log(`🤖 IA (OpenAI GPT-4o) dice: ${JSON.stringify(res)}`);
+            console.log(`👤 IA (OpenAI GPT-4o) dice: ${JSON.stringify(res)}`);
             return res;
         } catch (err) {
             console.warn('⚠️ Error en OpenAI, reintentando con Groq:', err.message);
@@ -78,7 +78,7 @@ Respuesta JSON:`;
         });
 
         const res = JSON.parse(completion.choices[0].message.content.trim());
-        console.log(`🤖 IA (Groq) dice: ${JSON.stringify(res)}`);
+        console.log(`👤 IA (Groq) dice: ${JSON.stringify(res)}`);
         return res;
     } catch (error) {
         console.error('❌ Error en detección de IA:', error.message);
