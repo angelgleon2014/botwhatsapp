@@ -201,6 +201,18 @@ function clearAllSales() {
 }
 
 /**
+ * Get the last known location for a specific number
+ */
+function getLastLocation(number) {
+    return new Promise((resolve, reject) => {
+        db.get('SELECT address FROM sales WHERE number = ? AND address IS NOT NULL AND address != "" ORDER BY id DESC LIMIT 1', [number], (err, row) => {
+            if (err) reject(err);
+            else resolve(row ? row.address : '');
+        });
+    });
+}
+
+/**
  * Delete the last sale recorded in the database
  */
 function deleteLastSale() {
@@ -245,6 +257,7 @@ module.exports = {
     getTopClients,
     getChileDate,
     saleExists,
+    getLastLocation,
     deleteLastSale,
     deleteLastSaleByNumber,
     initDb,

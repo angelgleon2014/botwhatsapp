@@ -565,12 +565,65 @@ client.on('message_create', async (msg) => {
             }
         }
 
+        // 9. REGISTRO MANUAL DE VENTA (!rv)
+        if (mensajeLimpio.startsWith('!rv') && !chat.isGroup) {
+            const rawArgs = cuerpoMensaje.split(/\s+/).slice(1);
+            if (rawArgs.length < 1) {
+                return await msg.reply('❌ Formato incorrecto. Usa: `!rv [numero] [cantidad]`\nEj: `!rv 56912345678 2`');
+            }
+
+            const numeroTarget = rawArgs[0].replace(/\D/g, '');
+            let cantidad = parseInt(rawArgs[1]);
+            if (isNaN(cantidad) || cantidad <= 0) cantidad = 1;
+
+            if (!numeroTarget) {
+                return await msg.reply('❌ Debes ingresar un número válido.');
+            }
+
+            try {
+                // Buscar ubicación previa
+                const ultimaUbicacion = await db.getLastLocation(numeroTarget);
+                const precioPorUnidad = 2000;
+                const totalClp = cantidad * precioPorUnidad;
+
+                // Buscar nombre si es posible
+                let nombreManual = "Registro Manual";
+                try {
+                    const contactInfo = await client.getContactById(numeroTarget + "@c.us");
+                    if (contactInfo) {
+                        nombreManual = contactInfo.pushname || contactInfo.name || nombreManual;
+                    }
+                } catch (e) {
+                    // No importa si falla el nombre
+                }
+
+                await db.registerSale(nombreManual, numeroTarget, cantidad, totalClp, ultimaUbicacion);
+
+                let resp = `✅ *Venta registrada manualmente*\n\n` +
+                    `👤 *Cliente:* ${nombreManual}\n` +
+                    `🆔 *ID:* ${numeroTarget}\n` +
+                    `💧 *Cant:* ${cantidad}\n` +
+                    `💰 *Total:* $${totalClp.toLocaleString('es-CL')}`;
+
+                if (ultimaUbicacion) {
+                    resp += `\n📍 *Ubicación:* ${ultimaUbicacion} (autocompletada)`;
+                }
+
+                await msg.reply(resp);
+                console.log(`[MANUAL OK] Venta registrada por comando !rv para ${numeroTarget}`);
+            } catch (err) {
+                console.error('Error en !rv:', err);
+                await msg.reply('❌ Error al registrar la venta manualmente.');
+            }
+        }
+
         // 7. COMANDO DE AYUDA (!ayuda)
         if ((mensajeLimpio === '!ayuda' || mensajeLimpio === '!help' || mensajeLimpio === '!comandos') && !chat.isGroup) {
             const ayudaMensaje = `📝 *COMANDOS DEL BOT* 📝\n\n` +
                 `*!ventas*: Resumen de ingresos acumulados.\n` +
                 `*!excel*: Descarga el listado mensual en Excel.\n` +
                 `*!reporte*: Seguimiento de pedidos pendientes.\n` +
+                `*!rv [num] [cant]*: Registra venta manualmente.\n` +
                 `*!euv*: Elimina la última venta registrada.\n` +
                 `*!euvn [num]*: Elimina la última venta de un número.\n` +
                 `*!scan*: Busca ventas en el historial reciente.\n` +

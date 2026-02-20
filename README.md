@@ -56,7 +56,8 @@ El bot responde a los siguientes comandos en chats privados:
 | `!ayuda` | Muestra el menú de ayuda con todos los comandos. |
 | `!ventas` | Resumen financiero (Hoy, Ayer, Semana, Mes). |
 | `!excel` | Exporta la base de datos mensual a un archivo `.xlsx`. |
-| `!reporte` | Envía alertas de seguimiento al grupo configurado. |
+| `!reporte` | Envía las listas de seguimiento (4 días y 5-10 días) al grupo. |
+| `!rv [num] [cant]`| **Registro Manual**: Registra una venta manualmente con autocompletado de ubicación. |
 | `!euv` | **Eliminar Última Venta**: Borra el registro más reciente. |
 | `!euvn [num]`| **Eliminar Última Venta por Número**: Borra la última venta de ese cliente. |
 | `!scan` | Analiza el historial reciente de un chat buscando ventas. |
