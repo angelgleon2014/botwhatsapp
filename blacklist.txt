@@ -1,0 +1,7 @@
+# Lista Negra de Números de WhatsApp
+# Añade un número por línea (solo números, sin el + ni @c.us)
+# Ejemplo:
+# 56912345678
+# 34600000000
+56974611694
+56930222371

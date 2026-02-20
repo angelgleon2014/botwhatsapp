@@ -4,14 +4,17 @@
     "description": "WhatsApp group monitor bot for water business",
     "main": "index.js",
     "scripts": {
-        "start": "node index.js"
+        "start": "node index.js",
+        "dev": "nodemon --ignore session/ --ignore data/ index.js"
     },
     "dependencies": {
-        "whatsapp-web.js": "^1.26.0",
+        "dotenv": "^16.4.5",
+        "exceljs": "^4.4.0",
+        "node-cron": "^3.0.3",
+        "nodemon": "^3.1.0",
+        "openai": "^4.28.0",
         "qrcode-terminal": "^0.12.0",
         "sqlite3": "^5.1.7",
-        "node-cron": "^3.0.3",
-        "openai": "^4.28.0",
-        "dotenv": "^16.4.5"
+        "whatsapp-web.js": "^1.26.0"
     }
 }

@@ -1,33 +1,24 @@
-FROM node:20-slim
-
-# Instalar dependencias necesarias para Chrome Y para compilar SQLite (python, make, g++)
-RUN apt-get update && apt-get install -y \
-    wget \
-    gnupg \
-    ca-certificates \
-    apt-transport-https \
-    python3 \
-    make \
-    g++ \
-    --no-install-recommends
-
-# Instalar Chrome Estable
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt-get update && apt-get install -y \
-    google-chrome-stable \
-    --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+FROM ghcr.io/puppeteer/puppeteer:21.0.0
 
 WORKDIR /app
 
+USER root
+
+# Desactivar repositorios fallidos de Google
+RUN rm -f /etc/apt/sources.list.d/google.list
+
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY package*.json ./
-# Rebuild sqlite3 from source in the container environment
 RUN npm install
 
 COPY . .
 
-RUN chown -R node:node /app
-USER node
+# En Docker, correr como root evita los problemas de permisos con volúmenes montados de Linux
+USER root
 
-CMD ["node", "index.js"]
+CMD ["sh", "-c", "rm -f /app/session/session/SingletonLock && node index.js"]

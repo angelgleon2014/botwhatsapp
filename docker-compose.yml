@@ -3,13 +3,20 @@ services:
     build: .
     container_name: whatsapp-monitor
     restart: always
+    mem_limit: 1024m
+    shm_size: '2gb'
     env_file:
       - .env
     volumes:
+      - .:/app
+      - /app/node_modules
       - ./session:/app/session
       - ./data:/app/data
+      - ./blacklist.txt:/app/blacklist.txt
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
+      - TZ=America/Santiago
+    command: sh -c "rm -f /app/session/session/SingletonLock && npm run dev"
     # Mantenemos la terminal abierta para ver el código QR en los logs
     stdin_open: true
     tty: true
