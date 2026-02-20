@@ -255,20 +255,15 @@ client.on('message_create', async (msg) => {
                     const precioPorUnidad = 2000;
                     const totalClp = cantidad * precioPorUnidad;
 
-                    let contactoInfo = null;
                     try {
-                        if (msg.fromMe && client.info) {
-                            nombre = client.info.pushname || client.info.wid.user;
-                            numero = client.info.wid.user;
-                        } else {
-                            contactoInfo = await msg.getContact();
-                            nombre = contactoInfo ? (contactoInfo.pushname || contactoInfo.number) : 'Desconocido';
-                            numero = contactoInfo ? contactoInfo.number : 'unknown';
-                        }
+                        // En chat privado, el contacto siempre es la otra persona (el cliente)
+                        const contacto = await chat.getContact();
+                        nombre = contacto.pushname || contacto.name || contacto.number;
+                        numero = contacto.number;
                     } catch (e) {
                         console.warn('[WARN] No se pudo obtener contacto para venta:', e.message);
-                        nombre = 'Desconocido';
-                        numero = 'unknown';
+                        nombre = chat.name || 'Desconocido';
+                        numero = chat.id.user || 'unknown';
                     }
                     await db.registerSale(nombre, numero, cantidad, totalClp, ubicacion);
 
