@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const ExcelJS = require('exceljs');
 
-console.log('🚀 [SYSTEM] Iniciando script index.js...');
+console.log('✅ [SYSTEM] Iniciando script index.js...');
 
 // Limpieza de seguridad para SingletonLock (Evita errores al reiniciar con nodemon)
 const sessionPath = path.join(__dirname, 'session');
@@ -21,7 +21,7 @@ if (fs.existsSync(sessionPath)) {
             if (file === 'SingletonLock' || file === 'SingletonCookie' || file === 'SingletonSocket') {
                 try {
                     fs.unlinkSync(fullPath);
-                    console.log(`🧹 [SYSTEM] Eliminado: ${fullPath}`);
+                    console.log(`⚙️ [SYSTEM] Eliminado: ${fullPath}`);
                 } catch (e) { }
             } else if (fs.lstatSync(fullPath).isDirectory()) {
                 deleteLock(fullPath);
@@ -272,7 +272,7 @@ client.on('message_create', async (msg) => {
 
                     console.log(`[VENTA OK] Guardada para ${nombre} | Cant: ${cantidad} | Total: $${totalClp} | Ubicación: ${ubicacion}`);
                 } else {
-                    console.log(`🤖 IA dice: NO (Venta no cerrada aún)`);
+                    console.log(`👤 IA dice: NO (Venta no cerrada aún)`);
                 }
             }
         }
@@ -377,9 +377,9 @@ client.on('message_create', async (msg) => {
                 }
 
                 // Reporte final
-                let resumen = `🎉 *BOOTSTRAP COMPLETADO* 🎉\n\n`;
+                let resumen = `✅ *BOOTSTRAP COMPLETADO* ✅\n\n`;
                 resumen += `📊 *Chats analizados:* ${chatsAnalizados}\n`;
-                resumen += `💰 *Ventas detectadas:* ${ventasEncontradas}\n\n`;
+                resumen += `📊 *Ventas detectadas:* ${ventasEncontradas}\n\n`;
 
                 if (detalleVentas.length > 0) {
                     resumen += `*DETALLE DE VENTAS ENCONTRADAS:*\n\n`;
@@ -428,7 +428,7 @@ client.on('message_create', async (msg) => {
 
             const format = (data) => `$${(data.total || 0).toLocaleString('es-CL')} (${data.qty || 0} unid.)`;
 
-            let response = `💰 *RESUMEN DE INGRESOS* 💰\n\n` +
+            let response = `📈 *RESUMEN DE INGRESOS* 📈\n\n` +
                 `📅 *Hoy:* ${format(summary.today)}\n` +
                 `📆 *Ayer:* ${format(summary.yesterday)}\n` +
                 `🗓️ *Esta Semana:* ${format(summary.week)}\n` +
@@ -537,7 +537,7 @@ client.on('message_create', async (msg) => {
 
         // 7. COMANDO DE AYUDA (!ayuda)
         if ((mensajeLimpio === '!ayuda' || mensajeLimpio === '!help' || mensajeLimpio === '!comandos') && !chat.isGroup) {
-            const ayudaMensaje = `🤖 *COMANDOS DEL BOT* 🤖\n\n` +
+            const ayudaMensaje = `📝 *COMANDOS DEL BOT* 📝\n\n` +
                 `*!ventas*: Resumen de ingresos acumulados (hoy, ayer, semana, mes).\n` +
                 `*!excel*: Descarga el listado de ventas mensual en Excel.\n` +
                 `*!reporte*: Envía alertas de seguimiento de pedidos pendientes.\n` +

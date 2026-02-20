@@ -1,10 +1,10 @@
-# WhatsApp AI Sale Monitor & CRM 💧🚀
+# WhatsApp AI Sale Monitor & CRM ✅
 
 Un ecosistema inteligente de monitoreo y automatización de ventas para WhatsApp, diseñado para optimizar el ciclo de vida del cliente mediante la **orquestación de Inteligencia Artificial**.
 
 Este proyecto no es solo un bot de respuestas; es un agente autónomo que transcribe audios, analiza contextos de venta en tiempo real, gestiona bases de datos relacionales y genera inteligencia de negocios (BI) automáticamente.
 
-## 🌟 Características Principales
+## ✅ Características Principales
 
 - **Detección de Ventas Multi-Modo**: Orquestación de **OpenAI (GPT-4o)** y **Groq** para identificar cierres de venta, cantidades y direcciones con precisión humana.
 - **Transcripción de Voz (Whisper)**: Conversión instantánea de notas de voz a texto para procesamiento por la IA. El bot "escucha" y actúa.
@@ -18,7 +18,7 @@ Este proyecto no es solo un bot de respuestas; es un agente autónomo que transc
   - Persistencia con **SQLite3**.
   - Estabilidad garantizada con limpieza automática de sesiones y gestión de Puppeteer.
 
-## 🛠️ Stack Tecnológico
+## ⚙️ Stack Tecnológico
 
 | Capa | Tecnología |
 |------|------------|
@@ -30,7 +30,7 @@ Este proyecto no es solo un bot de respuestas; es un agente autónomo que transc
 | **Infraestructura** | Docker & Docker Compose |
 | **Reporting** | ExcelJS |
 
-## 🚀 Cómo Empezar
+## � Cómo Empezar
 
 ### Requisitos Previos
 - Docker & Docker Compose instalados.
@@ -54,7 +54,7 @@ Este proyecto demuestra una habilidad avanzada en la **integración y sincroniza
 - **Contextualización**: Mantiene un caché de transcripciones para que la IA tenga memoria visual y auditiva de la charla.
 - **Proactividad**: El sistema anticipa necesidades de seguimiento basándose en la data histórica procesada.
 
-## ⚡ High-Velocity Engineering (AI-Augmented)
+## 📊 High-Velocity Engineering (AI-Augmented)
 
 Este proyecto fue concebido, desarrollado y desplegado en **tiempo récord**, utilizando metodologías de **Desarrollo Aumentado por IA**. 
 - **Velocidad**: Implementación completa de lógica compleja (IA + Base de Datos + Docker) en menos de 48 horas.
