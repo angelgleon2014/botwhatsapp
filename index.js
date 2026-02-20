@@ -639,14 +639,14 @@ client.on('message_create', async (msg) => {
                 `*!euv*: Elimina la última venta registrada.\n` +
                 `*!euvn [num]*: Elimina la última venta de un número.\n` +
                 `*!scan*: Busca ventas en el historial reciente.\n` +
-                `*!id*: Ver ID de este chat.\n\n` +
-                `_Nota: Estos comandos solo funcionan en chats privados._`;
+                `*!id*: Ver ID de este chat (funciona en grupos).\n\n` +
+                `_Nota: La mayoría de los comandos solo funcionan en chats privados._`;
 
             await msg.reply(ayudaMensaje);
         }
 
         // 8. COMANDO !id (Para obtener IDs de grupos/chats)
-        if (mensajeLimpio === '!id' && !chat.isGroup) {
+        if (mensajeLimpio === '!id') {
             await msg.reply(`🆔 ID de este chat: \`${chat.id._serialized}\``);
         }
 

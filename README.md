@@ -42,10 +42,15 @@ Este proyecto no es solo un bot de respuestas; es un agente autónomo que transc
    ```bash
    docker compose up -d --build
    ```
-3. Escanear el código QR que aparecerá en los logs:
    ```bash
    docker compose logs -f bot
    ```
+4. **Configurar Grupo de Alertas**:
+   - Una vez conectado, entra al grupo de WhatsApp donde quieres recibir los reportes.
+   - Escribe el comando `!id`.
+   - El bot responderá con un ID (ej: `120363012345678@g.us`).
+   - Copia ese ID y pégalo en tu archivo `.env` en la variable `MI_GRUPO_DE_ALERTAS`.
+   - Reinicia el bot para aplicar los cambios: `docker compose restart bot`.
 
 ## ⌨️ Comandos Disponibles
 
@@ -61,7 +66,7 @@ El bot responde a los siguientes comandos en chats privados:
 | `!euv` | **Eliminar Última Venta**: Borra el registro más reciente. |
 | `!euvn [num]`| **Eliminar Última Venta por Número**: Borra la última venta de ese cliente. |
 | `!scan` | Analiza el historial reciente de un chat buscando ventas. |
-| `!id` | Muestra el ID único del chat actual (para configuración). |
+| `!id` | **Obtener ID**: Muestra el ID único del chat o grupo (úsalo para configurar el `.env`). |
 
 ## ✅ Calidad y Testing (QA)
 
