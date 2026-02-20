@@ -203,7 +203,7 @@ client.on('message_create', async (msg) => {
             const palabrasIntento = ['deme', 'dame', 'quiero', 'mande', 'mándeme', 'necesito', 'traeme', 'tráeme', 'envie', 'envíe'];
             const todasLasTrigger = [...palabrasTrigger, ...palabrasIntento];
             const palabrasConfirmacion = ['ok', 'voy', 'vale', 'listo', 'sale', 'ya', 'perfecto'];
-            const palabrasNegativas = ['no', 'puedo', 'disculpe', 'regreso', 'mañana', 'tarde', 'cerrado'];
+            const palabrasNegativas = ['no', 'puedo', 'disculpe', 'regreso', 'mañana', 'cerrado'];
 
             // Detección proactiva: revisar mensajes recientes
             const messagesIA = await chat.fetchMessages({ limit: 5 });
@@ -247,7 +247,9 @@ client.on('message_create', async (msg) => {
 
                 const aiResponse = await ai.detectSale(contextoFinal);
 
-                if (aiResponse && aiResponse.esVenta) {
+                // REGLA DE SEGURIDAD: Solo registrar si el último mensaje fue del VENDEDOR (fromMe)
+                // y la IA confirmó la venta. Esto evita registros falsos por mensajes del cliente.
+                if (aiResponse && aiResponse.esVenta && msg.fromMe) {
                     const cantidad = aiResponse.cantidad || 1;
                     const ubicacion = aiResponse.ubicacion || '';
                     const precioPorUnidad = 2000;
@@ -409,6 +411,8 @@ client.on('message_create', async (msg) => {
             const messages = await chat.fetchMessages({ limit: 50 });
             const context = messages.map(m => `${m.fromMe ? 'Vendedor' : 'Cliente'}: ${m.body}`).join('\n');
             const aiResponse = await ai.detectSale(context);
+            // En el comando !scan, permitimos que se registre si la IA lo ve claro, 
+            // ya que el comando lo lanza el usuario manualmente para buscar ventas pasadas.
             if (aiResponse && aiResponse.esVenta) {
                 const cantidad = aiResponse.cantidad || 1;
                 const totalClp = cantidad * 2000;

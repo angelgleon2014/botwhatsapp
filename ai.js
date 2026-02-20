@@ -19,25 +19,28 @@ async function detectSale(chatHistory) {
     const prompt = `Actúa como un Auditor de Ventas Estricto para un negocio de agua en Chile.
 Tu misión es determinar si una venta se CERRÓ con éxito basándote en la conversación.
 
-REGLA DE ORO DE CIERRE:
-- Una venta SOLO es exitosa (esVenta: true) si el Cliente solicita Y el Vendedor responde CONFIRMANDO de forma explícita.
-- SI EL ÚLTIMO MENSAJE ES DEL CLIENTE, la venta "esVenta" SIEMPRE es false (está pendiente).
-- Respuestas de rechazo (No puedo, No hay, Vuelvo en 2h) son "esVenta": false.
+REGLA DE ORO DE CIERRE (EXTREMA):
+- Una venta SOLO es exitosa (esVenta: true) si el Cliente solicita Y el Vendedor responde CONFIRMANDO (ej: ok, voy, listo, perfecto).
+- REGLA ABSOLUTA: Si el ÚLTIMO mensaje de la conversación es del CLIENTE, "esVenta" DEBE ser false. No importa lo que se haya dicho antes.
+- REGLA DE NO REPETICIÓN: Si el vendedor ya confirmó anteriormente y el cliente vuelve a hablar (ej: "gracias", "le espero"), la venta ya se considera procesada/vieja y debes responder "esVenta": false para evitar duplicados. Solo devuelve true en el PRECISO MOMENTO en que el vendedor confirma.
+- Ubicación: No la inventes. Si no hay dirección clara y no está en el mensaje, deja vacío o usa lo que diga el texto.
 
-EJEMPLOS DE ENTRENAMIENTO:
+EJEMPLOS:
 
-Cliente: Hola quiero 2 aguas al 1201
-Respuesta: {"esVenta": false, "cantidad": 2, "ubicacion": "1201"} (Falta confirmación del vendedor)
+Contexto:
+Cliente: Quiero 1 agua al 1201
+Respuesta: {"esVenta": false, "cantidad": 1, "ubicacion": "1201"} (Falta confirmación)
 
-Ejemplo 2 (RECHAZADA):
-Cliente: Tráeme 3 bidones
-Vendedor: No tengo stock ahora, disculpe.
-Respuesta: {"esVenta": false, "cantidad": 3, "ubicacion": ""} (Vendedor rechazó)
+Contexto:
+Cliente: Quiero 1 agua al 1201
+Vendedor: Ok voy
+Respuesta: {"esVenta": true, "cantidad": 1, "ubicacion": "1201"} (CIERRE PERFECTO)
 
-Ejemplo 3 (EXITOSA):
-Cliente: Quiero 2 de 20 litros porfa al depto 507 torre A
-Vendedor: Ok voy para allá
-Respuesta: {"esVenta": true, "cantidad": 2, "ubicacion": "Depto 507 Torre A"} (Venta cerrada con éxito)
+Contexto:
+Cliente: Quiero 1 agua al 1201
+Vendedor: Ok voy
+Cliente: Gracias amable
+Respuesta: {"esVenta": false, "cantidad": 1, "ubicacion": "1201"} (YA CERRADA, EL ÚLTIMO ES CLIENTE)
 
 REGLAS DE SALIDA:
 - Responde ÚNICAMENTE con un objeto JSON: { "esVenta": boolean, "cantidad": number, "ubicacion": string }
