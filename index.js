@@ -87,6 +87,16 @@ client.on('ready', async () => {
     });
 });
 
+client.on('auth_failure', (msg) => {
+    console.error('❌ FALLO DE AUTENTICACIÓN:', msg);
+});
+
+client.on('disconnected', (reason) => {
+    console.log('⚠️ BOT DESCONECTADO:', reason);
+    // Podríamos intentar reiniciarlo aquí o simplemente dejar que Docker lo haga si falla el proceso
+    // Por ahora, solo logueamos para entender por qué ocurre
+});
+
 async function sendFollowUpReports(verbose = false) {
     try {
         const clients4Days = await db.getSalesFromDaysAgo(4);
