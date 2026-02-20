@@ -93,8 +93,10 @@ client.on('auth_failure', (msg) => {
 
 client.on('disconnected', (reason) => {
     console.log('⚠️ BOT DESCONECTADO:', reason);
-    // Podríamos intentar reiniciarlo aquí o simplemente dejar que Docker lo haga si falla el proceso
-    // Por ahora, solo logueamos para entender por qué ocurre
+    console.log('🔄 Reiniciando proceso para forzar reconexión automática...');
+    setTimeout(() => {
+        process.exit(1); // Docker lo reiniciará automáticamente (gracias a restart: always en docker-compose)
+    }, 5000); // 5 segundos para asegurar que el log se guarde
 });
 
 async function sendFollowUpReports(verbose = false) {
