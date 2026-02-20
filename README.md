@@ -47,6 +47,19 @@ Este proyecto no es solo un bot de respuestas; es un agente autónomo que transc
    docker compose logs -f bot
    ```
 
+## ✅ Calidad y Testing (QA)
+
+Para garantizar la fiabilidad del sistema sin comprometer la cuenta de WhatsApp real, se ha implementado una suite de pruebas unitarias robusta:
+
+- **Framework**: Jest.
+- **Aislamiento**: Uso de bases de datos en memoria (`:memory:`) para pruebas de integración de datos.
+- **Mocking**: Simulación de respuestas de IA para validar la lógica de negocio sin incurrir en costes de API ni riesgos de baneo.
+- **Ejecución**:
+  ```bash
+  npm test
+  ```
+  *Esta suite valida automáticamente la detección de ventas, gestión de duplicados y cálculos financieros.*
+
 ## 🧠 Orquestación de IA: El Valor Agregado
 
 Este proyecto demuestra una habilidad avanzada en la **integración y sincronización de modelos de IA**. No se limita a llamadas simples a una API, sino que implementa una lógica de negocio donde la IA actúa como el cerebro de un sistema complejo:

@@ -5,7 +5,8 @@
     "main": "index.js",
     "scripts": {
         "start": "node index.js",
-        "dev": "nodemon --ignore session/ --ignore data/ index.js"
+        "dev": "nodemon --ignore session/ --ignore data/ index.js",
+        "test": "jest --runInBand --verbose"
     },
     "dependencies": {
         "dotenv": "^16.4.5",
@@ -16,5 +17,8 @@
         "qrcode-terminal": "^0.12.0",
         "sqlite3": "^5.1.7",
         "whatsapp-web.js": "^1.26.0"
+    },
+    "devDependencies": {
+        "jest": "^30.2.0"
     }
 }

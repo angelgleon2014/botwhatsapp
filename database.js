@@ -1,7 +1,9 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const dbPath = path.resolve(__dirname, 'data/database.sqlite');
+// Si estamos en entorno de pruebas, usamos base de datos en memoria
+const isTest = process.env.NODE_ENV === 'test';
+const dbPath = isTest ? ':memory:' : path.resolve(__dirname, 'data/database.sqlite');
 const db = new sqlite3.Database(dbPath);
 
 /**
@@ -13,32 +15,42 @@ function getChileDate(date = new Date()) {
 }
 
 // Initialize database
-db.serialize(() => {
-    db.run(`
-        CREATE TABLE IF NOT EXISTS sales (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            number TEXT,
-            date TEXT,
-            address TEXT,
-            quantity INTEGER DEFAULT 1,
-            total_clp INTEGER DEFAULT 0
-        )
-    `);
+function initDb() {
+    return new Promise((resolve) => {
+        db.serialize(() => {
+            db.run(`
+                CREATE TABLE IF NOT EXISTS sales (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT,
+                    number TEXT,
+                    date TEXT,
+                    address TEXT,
+                    quantity INTEGER DEFAULT 1,
+                    total_clp INTEGER DEFAULT 0
+                )
+            `);
 
-    // Migración simple para bases de datos existentes
-    db.all("PRAGMA table_info(sales);", (err, rows) => {
-        if (err || !rows) return;
-        const columns = rows.map(r => r.name);
-        if (!columns.includes('quantity')) {
-            db.run("ALTER TABLE sales ADD COLUMN quantity INTEGER DEFAULT 1;");
-            db.run("ALTER TABLE sales ADD COLUMN total_clp INTEGER DEFAULT 0;");
-        }
-        if (!columns.includes('address')) {
-            db.run("ALTER TABLE sales ADD COLUMN address TEXT;");
-        }
+            // Migración simple para bases de datos existentes
+            db.all("PRAGMA table_info(sales);", (err, rows) => {
+                if (err || !rows) return resolve();
+                const columns = rows.map(r => r.name);
+                if (!columns.includes('quantity')) {
+                    db.run("ALTER TABLE sales ADD COLUMN quantity INTEGER DEFAULT 1;");
+                    db.run("ALTER TABLE sales ADD COLUMN total_clp INTEGER DEFAULT 0;");
+                }
+                if (!columns.includes('address')) {
+                    db.run("ALTER TABLE sales ADD COLUMN address TEXT;");
+                }
+                resolve();
+            });
+        });
     });
-});
+}
+
+// Ejecutar inicialización inmediatamente (excepto si queremos manejarla manual en tests)
+if (!isTest) {
+    initDb();
+}
 
 /**
  * Register a new sale
@@ -164,6 +176,42 @@ function getTopClients(limit = 3) {
     });
 }
 
+/**
+ * Check if a sale already exists for a number and date
+ */
+function saleExists(number, date) {
+    return new Promise((resolve, reject) => {
+        db.get('SELECT id FROM sales WHERE number = ? AND date = ?', [number, date], (err, row) => {
+            if (err) reject(err);
+            else resolve(!!row);
+        });
+    });
+}
+
+/**
+ * Clear all sales from database (Useful for testing)
+ */
+function clearAllSales() {
+    return new Promise((resolve, reject) => {
+        db.run('DELETE FROM sales', (err) => {
+            if (err) reject(err);
+            else resolve();
+        });
+    });
+}
+
+/**
+ * Close database connection
+ */
+function close() {
+    return new Promise((resolve, reject) => {
+        db.close((err) => {
+            if (err) reject(err);
+            else resolve();
+        });
+    });
+}
+
 module.exports = {
     registerSale,
     getSalesFromDaysAgo,
@@ -171,5 +219,9 @@ module.exports = {
     getFinancialSummary,
     getMonthlySalesData,
     getTopClients,
-    getChileDate
+    getChileDate,
+    saleExists,
+    initDb,
+    clearAllSales,
+    close
 };
