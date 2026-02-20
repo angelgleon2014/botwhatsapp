@@ -10,6 +10,19 @@ const ExcelJS = require('exceljs');
 
 console.log('✅ [SYSTEM] Iniciando script index.js...');
 
+// 1. MANEJO DE ERRORES GLOBALES (Prevención de cierres silenciosos)
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ [FATAL] Unhandled Rejection at:', promise, 'reason:', reason);
+    console.log('🔄 Reiniciando por error no manejado...');
+    process.exit(1);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('❌ [FATAL] Uncaught Exception:', err);
+    console.log('🔄 Reiniciando por excepción no capturada...');
+    process.exit(1);
+});
+
 // Limpieza de seguridad para SingletonLock (Evita errores al reiniciar con nodemon)
 const sessionPath = path.join(__dirname, 'session');
 if (fs.existsSync(sessionPath)) {
@@ -47,7 +60,14 @@ const client = new Client({
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage'
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu',
+            '--hide-scrollbars',
+            '--disable-notifications',
+            '--disable-extensions'
         ]
     }
 });
@@ -85,6 +105,21 @@ client.on('ready', async () => {
         console.log('🕒 Ejecutando reporte diario de seguimiento...');
         await sendFollowUpReports();
     });
+
+    // 2. HEARTBEAT (Latido de Salud) - Verifica cada 2 minutos si el bot sigue respondiendo
+    setInterval(async () => {
+        try {
+            const state = await client.getState();
+            // console.log(`💓 [HEARTBEAT] Estado: ${state}`); // Opcional: loguear cada 2 min
+            if (state !== 'CONNECTED' && state !== 'PAIRING') {
+                console.warn('⚠️ [HEARTBEAT] Estado no conectado detectado:', state);
+                process.exit(1); // Forzar reinicio
+            }
+        } catch (e) {
+            console.error('❌ [HEARTBEAT] Error detectado: BOT PEGADO O DESCONECTADO');
+            process.exit(1); // Forzar reinicio por Docker
+        }
+    }, 120000);
 });
 
 client.on('auth_failure', (msg) => {
