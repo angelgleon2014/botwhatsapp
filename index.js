@@ -7,6 +7,7 @@ const ai = require('./ai');
 const fs = require('fs');
 const path = require('path');
 const ExcelJS = require('exceljs');
+const { parseRvCommand } = require('./utils');
 
 console.log('✅ [SYSTEM] Iniciando script index.js...');
 
@@ -55,8 +56,8 @@ const client = new Client({
     puppeteer: {
         executablePath: '/usr/bin/google-chrome',
         headless: true,
-        timeout: 120000,           // 2 minutos de carga
-        protocolTimeout: 120000,   // 2 minutos para comandos largos como getChats()
+        timeout: 300000,           // 5 minutos de carga
+        protocolTimeout: 300000,   // 5 minutos para comandos largos como getChats()
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -117,6 +118,7 @@ client.on('ready', async () => {
             }
         } catch (e) {
             console.error('❌ [HEARTBEAT] Error detectado: BOT PEGADO O DESCONECTADO');
+            console.error('Detalle error:', e.message);
             process.exit(1); // Forzar reinicio por Docker
         }
     }, 120000);
@@ -162,8 +164,44 @@ async function sendFollowUpReports(verbose = false) {
     }
 }
 
-// Cache para guardar las transcripciones y que la IA las pueda ver en el historial
+// Caches para reducir carga en Puppeteer
 const transcriptionCache = new Map();
+const contactCache = new Map();
+
+/**
+ * Función auxiliar para obtener contacto con caché
+ */
+async function getContactCached(msgOrContactId) {
+    const id = typeof msgOrContactId === 'string' ? msgOrContactId : (msgOrContactId.author || msgOrContactId.from);
+    if (!id) return null;
+
+    if (contactCache.has(id)) {
+        return contactCache.get(id);
+    }
+
+    try {
+        let contact;
+        if (typeof msgOrContactId === 'string') {
+            contact = await client.getContactById(id);
+        } else {
+            contact = await msgOrContactId.getContact();
+        }
+
+        if (contact) {
+            contactCache.set(id, contact);
+            // Limitar tamaño de caché a 500 contactos
+            if (contactCache.size > 500) {
+                const firstKey = contactCache.keys().next().value;
+                contactCache.delete(firstKey);
+            }
+        }
+        return contact;
+    } catch (e) {
+        console.warn(`[WARN] Error obteniendo contacto para ${id}:`, e.message);
+        return null;
+    }
+}
+
 
 client.on('message_create', async (msg) => {
     // 1. FILTRADO DE ESTADOS (STORIES)
@@ -180,7 +218,7 @@ client.on('message_create', async (msg) => {
             if (msg.fromMe && client.info) {
                 numeroLimpio = client.info.wid.user;
             } else {
-                contact = await msg.getContact();
+                contact = await getContactCached(msg);
                 numeroLimpio = contact ? contact.number : '';
             }
         } catch (e) {
@@ -307,8 +345,8 @@ client.on('message_create', async (msg) => {
                         // Usar chat.id.user garantiza que no registremos el número del bot
                         // cuando este es quien envía el mensaje de confirmación ("ok").
                         numero = chat.id.user;
-                        const contacto = await chat.getContact();
-                        nombre = contacto.pushname || contacto.name || chat.name || "Desconocido";
+                        const contacto = await getContactCached(chat.id._serialized);
+                        nombre = contacto?.pushname || contacto?.name || chat.name || "Desconocido";
                     } catch (e) {
                         console.warn("[WARN] No se pudo obtener contacto para venta:", e.message);
                         nombre = chat.name || "Desconocido";
@@ -331,7 +369,7 @@ client.on('message_create', async (msg) => {
         if (chat.isGroup && contienePalabra && chat.id._serialized !== MI_GRUPO_DE_ALERTAS) {
             let contactoInfo = null;
             try {
-                contactoInfo = await msg.getContact();
+                contactoInfo = await getContactCached(msg);
             } catch (e) {
                 console.warn('[WARN] No se pudo obtener contacto para alerta de grupo:', e.message);
             }
@@ -460,8 +498,8 @@ client.on('message_create', async (msg) => {
             if (aiResponse && aiResponse.esVenta) {
                 const cantidad = aiResponse.cantidad || 1;
                 const totalClp = cantidad * 2000;
-                const contacto = await msg.getContact();
-                await db.registerSale(contacto.pushname || contacto.number, contacto.number, cantidad, totalClp);
+                const contacto = await getContactCached(msg);
+                await db.registerSale(contacto?.pushname || contacto?.number, contacto?.number, cantidad, totalClp);
                 await msg.reply(`✅ Venta histórica detectada y guardada ($${totalClp}).`);
             } else {
                 await msg.reply('No se detectaron ventas claras en los últimos mensajes.');
@@ -614,18 +652,13 @@ client.on('message_create', async (msg) => {
 
         // 9. REGISTRO MANUAL DE VENTA (!rv)
         if (mensajeLimpio.startsWith('!rv') && !chat.isGroup) {
-            const rawArgs = cuerpoMensaje.split(/\s+/).slice(1);
-            if (rawArgs.length < 1) {
-                return await msg.reply('❌ Formato incorrecto. Usa: `!rv [numero] [cantidad]`\nEj: `!rv 56912345678 2`');
+            const parsed = parseRvCommand(cuerpoMensaje);
+
+            if (!parsed) {
+                return await msg.reply('❌ Formato incorrecto o número muy corto. Usa: `!rv [numero] [cantidad]`\nEj: `!rv +56 9 2208 1983 2`');
             }
 
-            const numeroTarget = rawArgs[0].replace(/\D/g, '');
-            let cantidad = parseInt(rawArgs[1]);
-            if (isNaN(cantidad) || cantidad <= 0) cantidad = 1;
-
-            if (!numeroTarget) {
-                return await msg.reply('❌ Debes ingresar un número válido.');
-            }
+            const { numero: numeroTarget, cantidad } = parsed;
 
             try {
                 // Buscar ubicación previa
@@ -636,7 +669,7 @@ client.on('message_create', async (msg) => {
                 // Buscar nombre si es posible
                 let nombreManual = "Registro Manual";
                 try {
-                    const contactInfo = await client.getContactById(numeroTarget + "@c.us");
+                    const contactInfo = await getContactCached(numeroTarget + "@c.us");
                     if (contactInfo) {
                         nombreManual = contactInfo.pushname || contactInfo.name || nombreManual;
                     }

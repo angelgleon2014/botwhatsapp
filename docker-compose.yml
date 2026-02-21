@@ -3,7 +3,7 @@ services:
     build: .
     container_name: whatsapp-monitor
     restart: always
-    mem_limit: 1024m
+    mem_limit: 2048m
     shm_size: '2gb'
     env_file:
       - .env
